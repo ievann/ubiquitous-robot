@@ -10,7 +10,7 @@ def send_message(text: str, update):
     requests.get(url=api_url+"sendMessage", params=params)
 
 def updater():
-    '''One updater to rule them all'''
+    '''One updater to get them all'''
     def get_updates():
         '''Requests updates from Telegram API using token, returns JSON.'''
         response = requests.get(api_url + "getUpdates").json()
@@ -27,24 +27,33 @@ def updater():
                 message = update["message"]
                 chat_id = message["chat"]["id"]
                 # To mark as read
-                requests.get(url=api_url+"getUpdates",\
+                requests.get(url=api_url+"getUpdates", \
                     params={"offset": update_id + 1})
 
                 if "entities" in message:
-                    print("Got a command!")
                     for entity in message["entities"]:
                         if entity["type"] == "bot_command":
+                            command_handler(message["text"].removeprefix("/"), update)
                             print("parsed the command")
-                
+
                 #if "text" in message:
                 #    send_message(message["text"], update)
-            
+
                 print(f"There's an update with ID {update_id}")
-        
+
         else:
             print("Error retrieving updates")
-    
+
     updates_parser()
+
+def command_handler(command: str, update):
+    commands = {"start":"Let's start!"}
+
+    if command in commands.keys():
+        send_message(commands[command], update)
+    else:
+        send_message(f"What is {command}?", update)
+
 
 while True:
     time.sleep(1)
